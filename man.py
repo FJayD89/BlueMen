@@ -1,14 +1,16 @@
+from typing import Iterable
+
 from cardinal import Cardinal
 from point import Point
 
 class Man:
-	points: list[Point]
+	points: frozenset[Point]
 
-	def __init__(self, points: list[Point]):
-		self.points = points
+	def __init__(self, points: Iterable[Point]):
+		self.points = frozenset(points)
 
 	@staticmethod
-	def from_tuples(points_list: list[tuple[int, int]]) -> "Man":
+	def from_tuples(points_list: Iterable[tuple[int, int]]) -> "Man":
 		return Man.from_map(map(lambda p: Point(p[0],p[1]), points_list))
 
 	@staticmethod
@@ -25,7 +27,7 @@ class Man:
 		return str(list(map(str, self.points)))
 
 	def normalize(self):
-		xmin = min(map(Point.get_x, self.points))
+		xmin = min(map(lambda p: p.x, self.points))
 		ymin = min(map(Point.get_y, self.points))
 		move = Point(xmin, ymin)
 		return self.move_by(-move)
@@ -60,3 +62,6 @@ class Man:
 				return self.rotate(Point.o()).rotate(Point.o()).rotate(Point.o())
 			case _:
 				raise Exception("WTF HOW")
+
+	def __iter__(self):
+		return iter(self.points)

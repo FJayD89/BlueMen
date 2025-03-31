@@ -55,3 +55,9 @@ class Point:
 	@staticmethod
 	def o():
 		return Point(0,0)
+
+	def __iter__(self):
+		return iter([self.x,self.y])
+
+	def __hash__(self):
+		return hash((self.x, self.y))

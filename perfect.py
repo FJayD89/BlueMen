@@ -1,23 +1,26 @@
 from itertools import product
 
-
-def rotate(piece):
-	return {(y, -x) for (x, y) in piece}
-
-
-def flip(piece):
-	return {(-x, y) for (x, y) in piece}
+from man import Man
+from point import Point
 
 
-def generate_transformations(piece):
+def rotate(piece: Man):
+	return Man.from_tuples({(y, -x) for (x, y) in piece})
+
+
+def flip(piece: Man):
+	return {Point(-x, y) for (x, y) in piece}
+
+
+def generate_transformations(piece: Man):
 	"""Generate all 8 possible transformations of a piece (rotations and flips)."""
 	transformations = set()
 	current = piece
 	for _ in range(4):  # 4 rotations
 		current = rotate(current)
-		transformations.add(frozenset(current))
+		transformations.add(Man(frozenset(current)))
 		transformations.add(frozenset(flip(current)))
-	return [set(trans) for trans in transformations]
+	return [Man(trans) for trans in transformations]
 
 
 def can_place(board, piece: set[tuple[int, int]], top_left: tuple[int, int]):
@@ -76,17 +79,17 @@ def from_grid(grid: list[list[int]]):
 		if grid[y][x] == 1:
 			coords.add((x, y))
 
-	return frozenset(coords)
+	return Man.from_tuples(coords)
 
 
-def to_grid(man: set):
-	width = max(p[0] for p in man) + 1
-	height = max(p[1] for p in man) + 1
+def to_grid(man: Man):
+	width = max(p.x for p in man) + 1
+	height = max(p.y for p in man) + 1
 
 	grid = [[' ' for i in range(width)] for j in range(height)]
 
 	for (y, x) in product(range(height), range(width)):
-		if (x, y) in man:
+		if Point(x, y) in man:
 			grid[y][x] = 'X'
 
 	grid = [" ".join(map(str, line)) for line in grid]
