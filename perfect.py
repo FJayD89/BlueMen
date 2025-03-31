@@ -4,46 +4,39 @@ from man import Man
 from point import Point
 
 
-def rotate(piece: Man):
-	return Man.from_tuples({(y, -x) for (x, y) in piece})
-
-
-def flip(piece: Man):
-	return {Point(-x, y) for (x, y) in piece}
-
-
 def generate_transformations(piece: Man):
 	"""Generate all 8 possible transformations of a piece (rotations and flips)."""
 	transformations = set()
-	current = piece
-	for _ in range(4):  # 4 rotations
-		current = rotate(current)
-		transformations.add(Man(frozenset(current)))
-		transformations.add(frozenset(flip(current)))
-	return [Man(trans) for trans in transformations]
+	rotations = [
+		piece,
+		piece.rotate(),
+		piece.rotate().rotate(),
+		piece.rotate().rotate().rotate()
+	]
+	for rot in rotations:  # 4 rotations
+		transformations.add(rot)
+		transformations.add(rot.flip())
+	return transformations
 
 
-def can_place(board, piece: set[tuple[int, int]], top_left: tuple[int, int]):
+def can_place(board, piece: Man, top_left: Point):
 	"""Check if a piece can be placed at a given position (top-left corner)."""
-	for (dx, dy) in piece:
-		x = top_left[0] + dx
-		y = top_left[1] + dy
+	for p in piece:
+		x,y = p + top_left
 		if not (0 <= x < len(board) and 0 <= y < len(board[0])) or board[x][y] != 0:
 			return False
 	return True
 
 
-def place_piece(board, piece: tuple[int, int], top_left, piece_id):
-	for (dx, dy) in piece:
-		x = top_left[0] + dx
-		y = top_left[1] + dy
+def place_piece(board, piece: Man, top_left, piece_id):
+	for p in piece:
+		x,y = p + top_left
 		board[x][y] = piece_id
 
 
 def remove_piece(board, piece, top_left):
-	for (dx, dy) in piece:
-		x = top_left[0] + dx
-		y = top_left[1] + dy
+	for p in piece:
+		x,y = p + top_left
 		board[x][y] = 0
 
 
@@ -54,15 +47,15 @@ def solve_puzzle(board, pieces, piece_index=0, ret_all: bool = False):
 		return True  # All pieces placed
 
 	for symm in pieces[piece_index]:
-		for x in range(len(board)):
-			for y in range(len(board[0])):
-				if can_place(board, symm, (x, y)):
-					place_piece(board, symm, (x, y), piece_index + 1)
-					if solve_puzzle(board, pieces, piece_index + 1):
-						if not ret_all: return True
-					remove_piece(board, symm, (x, y))
+		points = (Point(x,y) for x in range(len(board)) for y in range(len(board[0])))
+		for p in points:
+			if can_place(board, symm, p):
+				place_piece(board, symm, p, piece_index + 1)
+				if solve_puzzle(board, pieces, piece_index + 1):
+					if not ret_all: return True
+				remove_piece(board, symm, p)
 
-	return
+	return False
 
 
 def print_board(board):
@@ -79,7 +72,7 @@ def from_grid(grid: list[list[int]]):
 		if grid[y][x] == 1:
 			coords.add((x, y))
 
-	return Man.from_tuples(coords)
+	return Man(Point(x,y) for x,y in coords)
 
 
 def to_grid(man: Man):

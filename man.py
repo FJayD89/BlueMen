@@ -9,31 +9,23 @@ class Man:
 	def __init__(self, points: Iterable[Point]):
 		self.points = frozenset(points)
 
-	@staticmethod
-	def from_tuples(points_list: Iterable[tuple[int, int]]) -> "Man":
-		return Man.from_map(map(lambda p: Point(p[0],p[1]), points_list))
-
-	@staticmethod
-	def from_map(map_points: map) -> "Man":
-		return Man(list(map_points))
-
-	def rotate(self, origin: Point):
-		return Man.from_map(map(lambda p: p.rotate(origin), self.points))
+	def rotate(self, origin: Point = Point.o()):
+		return Man(p.rotate(origin) for p in self.points)
 
 	def move_by(self,diff: Point) -> "Man":
-		return Man.from_map(map(lambda p: p + diff, self.points))
+		return Man(p + diff for p in self.points)
 
 	def __repr__(self):
 		return str(list(map(str, self.points)))
 
 	def normalize(self):
-		xmin = min(map(lambda p: p.x, self.points))
-		ymin = min(map(Point.get_y, self.points))
+		xmin = min(p.x for p in self.points)
+		ymin = min(p.y for p in self.points)
 		move = Point(xmin, ymin)
 		return self.move_by(-move)
 
-	def set(self, points: list[Point]):
-		self.points = points
+	def set(self, points: Iterable[Point]):
+		self.points = frozenset(points)
 
 	def get_border(self) -> Point:
 		norm = self.normalize()
@@ -65,3 +57,6 @@ class Man:
 
 	def __iter__(self):
 		return iter(self.points)
+
+	def flip(self):
+		return Man(p.flip() for p in self.points)
